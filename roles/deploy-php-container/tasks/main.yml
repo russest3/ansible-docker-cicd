@@ -1,0 +1,9 @@
+---
+- name: 'Build and run the sample PHP application container'
+  community.docker.docker_compose_v2:
+    project_name: "{{ php_app_name }}"
+    project_src: ".docker/"
+    state: present
+    recreate: always
+  register: _results
+...

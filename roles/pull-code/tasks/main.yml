@@ -1,0 +1,25 @@
+---
+- name: 'Get repository'
+  ansible.builtin.pause:
+    prompt: 'Please enter a link to the repository'
+    echo: true
+  register: _repo_link
+
+- name: 'Get branch'
+  ansible.builtin.pause:
+    prompt: 'Please enter the branch'
+    echo: true
+  register: _branch
+
+- name: 'Make local build directory'
+  ansible.builtin.file:
+    path: "{{ playbook_dir }}/build"
+    state: directory
+
+- name: 'Pull source code'
+  ansible.builtin.git:
+    repo: "{{ _repo_link.user_input }}"
+    dest: "{{ playbook_dir }}/build/"
+    version: "{{ _branch.user_input }}"
+    single_branch: true
+...

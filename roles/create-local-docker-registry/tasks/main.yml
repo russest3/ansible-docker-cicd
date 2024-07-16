@@ -1,0 +1,8 @@
+---
+- name: 'Create a local docker registry'
+  community.docker.docker_container:
+    name: "{{ local_registry_image_name }}"
+    image: "{{ local_registry_image }}"
+    state: started
+  register: _results
+...

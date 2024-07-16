@@ -1,0 +1,55 @@
+---
+- name: 'Login to docker hub'
+  community.docker.docker_login:
+    username: "{{ dockerhub_un }}"
+    password: "{{ dockerhub_pw }}"
+
+- name: 'Deploying MySQL database container'
+  community.docker.docker_container:
+    name: "{{ mysql_server_name }}"
+    image: "{{ test_db_image }}"
+    interactive: true
+    published_ports:
+      - "{{ test_db_port }}:{{ test_db_port }}"
+    exposed_ports:
+      - "{{ test_db_port }}:{{ test_db_port }}"
+    tty: true
+    privileged: true
+    init: true
+    state: started
+    recreate: true
+  register: _results
+
+- name: 'Get the mysql container logfile location' 
+  ansible.builtin.set_fact:
+    __log_path: "{{ _results | json_query('container.LogPath') }}"
+
+- name: 'Pause 30 seconds'
+  ansible.builtin.pause:
+    seconds: 30
+
+- name: 'Get the MySQL container ID'
+  ansible.builtin.shell: "sudo docker container list | grep mysql | awk '{print $1}'"
+  register: _db_id
+  changed_when: false
+
+- name: 'Get the logs from the MySQL container'
+  ansible.builtin.command: "sudo docker logs {{ _db_id.stdout }}"
+  register: _logs
+  changed_when: false
+
+- name: 'Parse out the MySQL container root password'
+  ansible.builtin.set_fact:
+    _mysql_root_password: "{{ _logs.stdout | regex_search('GENERATED ROOT PASSWORD:.{33}') }}"
+
+- name: 'Parse out the MySQL container root password'
+  ansible.builtin.shell: "echo {{ _mysql_root_password }} | awk '{print $4}'"
+  register: mysql_root_password
+  changed_when: false
+
+- name: 'Get the IP address of the MySQL container'
+  ansible.builtin.set_fact:
+    _db_ip:  "{{ _results | json_query(_query) }}"
+  vars:
+    _query: "container.NetworkSettings.IPAddress"
+...

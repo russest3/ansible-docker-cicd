@@ -1,0 +1,13 @@
+---
+- name: 'Running the create-local-docker-registry role...'
+  hosts: localhost
+  become: true
+  gather_facts: false
+  connection: local
+
+  vars_files:
+    - common_vars.yml
+
+  roles:
+    - create-local-docker-registry
+...

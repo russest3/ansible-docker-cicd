@@ -1,0 +1,14 @@
+---
+- name: 'Copy over updated PHP application to PHP server'
+  community.docker.docker_container_copy_into:
+    container: "{{ php_app_name }}"
+    container_path: "{{ php_app_path }}/hello.php"
+    validate_certs: false
+    content: "{{ lookup('file', 'build/hello.php') }}"
+    mode: 0755
+
+# - name: 'Run tests...'
+
+# - name: 'If tests successful create a Github pull request'
+# Now need to figure out how to create webook for when PR is approved
+...
