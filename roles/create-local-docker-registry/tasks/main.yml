@@ -1,4 +1,20 @@
 ---
+- name: 'Update all packages'
+  ansible.builtin.package:
+    name: '*'
+    state: latest
+
+- name: 'Install Docker'
+  ansible.builtin.package:
+    name: docker
+    state: present
+
+- name: 'Start and enable Docker service'
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    enabled: true
+
 - name: 'Create a local docker registry'
   community.docker.docker_container:
     name: "{{ local_registry_image_name }}"

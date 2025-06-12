@@ -1,9 +1,9 @@
 ---
 # temp for testing
-dockerhub_un: s.p.russell00@gmail.com
+dockerhub_un: 
 dockerhub_pw: ''
 mysql_server_name: 'sql-container'
-mysql_root_password: ''
+mysql_root_password: 'testing123'
 mysql_database: 'gradesdb'
 mysql_user: 'admin'
 mysql_password: 'testing123'

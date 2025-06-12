@@ -1,10 +1,9 @@
 ---
 #=========================================================================
 - name: 'Create the docker registry container'
-  hosts: localhost
+  hosts: all
   become: true
-  gather_facts: false
-  connection: local
+  gather_facts: true
 
   vars_files:
     - common_vars.yml
@@ -16,31 +15,29 @@
 
 
 #=========================================================================
-# - name: 'Running the create-testing-environment role...'
-#   hosts: localhost
-#   become: true
-#   gather_facts: false
-#   connection: local
+- name: 'Running the create-testing-environment role...'
+  hosts: all
+  become: true
+  gather_facts: true
 
-#   vars_files:
-#     - common_vars.yml
+  vars_files:
+    - common_vars.yml
 
-#   roles:
-#     - create-testing-environment
+  roles:
+    - create-testing-environment
 
-#   post_tasks:
-#     - name: 'Refresh Inventory'
-#       ansible.builtin.meta: refresh_inventory
+  post_tasks:
+    - name: 'Refresh Inventory'
+      ansible.builtin.meta: refresh_inventory
 #=========================================================================
 
 
 
 #=========================================================================
 - name: 'Adding a mySQL database container to the testing environment...'
-  hosts: localhost
-  connection: local
+  hosts: all
   become: true
-  gather_facts: false
+  gather_facts: true
 
   vars_files:
     - common_vars.yml
@@ -52,77 +49,77 @@
 
 
 #=========================================================================
-- name: 'Adding a nginx container to the testing environment...'
-  hosts: localhost
-  become: true
-  gather_facts: false
+# - name: 'Adding a nginx container to the testing environment...'
+#   hosts: all
+#   become: true
+#   gather_facts: true
 
-  vars_files:
-    - common_vars.yml
+#   vars_files:
+#     - common_vars.yml
 
-  environment:
-    DB_HOST: "{{ hostvars['localhost']['_db_ip'] }}"
-    DB_HOST: '172.17.0.4'
-    DB_USERNAME: "{{ mysql_user }}"
-    DB_PASSWORD: "{{ mysql_root_password }}"
-    DB_NAME: "{{ mysql_database }}"
+#   environment:
+#     DB_HOST: "{{ hostvars['localhost']['_db_ip'] }}"
+#     DB_HOST: '172.17.0.4'
+#     DB_USERNAME: "{{ mysql_user }}"
+#     DB_PASSWORD: "{{ mysql_root_password }}"
+#     DB_NAME: "{{ mysql_database }}"
 
-  roles:
-    - deploy-nginx-container
+#   roles:
+#     - deploy-nginx-container
 #=========================================================================
 
 
 
 #=========================================================================
-- name: 'Deploy sample PHP application container'
-  hosts: localhost
-  connection: local
-  become: true
-  gather_facts: false
+# - name: 'Deploy sample PHP application container'
+#   hosts: localhost
+#   connection: local
+#   become: true
+#   gather_facts: false
 
-  environment:
-    DB_HOST: "{{ hostvars['localhost']['_db_ip'] }}"
-    DB_HOST: '172.17.0.4'
-    DB_USERNAME: "{{ mysql_user }}"
-    DB_PASSWORD: "{{ mysql_root_password }}"
-    DB_NAME: "{{ mysql_database }}"
+#   environment:
+#     DB_HOST: "{{ hostvars['localhost']['_db_ip'] }}"
+#     DB_HOST: '172.17.0.4'
+#     DB_USERNAME: "{{ mysql_user }}"
+#     DB_PASSWORD: "{{ mysql_root_password }}"
+#     DB_NAME: "{{ mysql_database }}"
 
-  vars_files:
-    - common_vars.yml
+#   vars_files:
+#     - common_vars.yml
 
-  roles:
-    - deploy-php-container
+#   roles:
+#     - deploy-php-container
 #=========================================================================
 
 
 
 #=========================================================================
-- name: 'Pulling code from repository'
-  hosts: localhost
-  connection: local
-  become: false
-  gather_facts: false
+# - name: 'Pulling code from repository'
+#   hosts: localhost
+#   connection: local
+#   become: false
+#   gather_facts: false
 
-  vars_files:
-    - common_vars.yml
+#   vars_files:
+#     - common_vars.yml
 
-  roles:
-    - pull-code
+#   roles:
+#     - pull-code
 #=========================================================================
 
 
 
 #=========================================================================
-- name: 'Push new code to test'
-  hosts: localhost
-  connection: local
-  become: true
-  gather_facts: false
+# - name: 'Push new code to test'
+#   hosts: localhost
+#   connection: local
+#   become: true
+#   gather_facts: false
 
-  vars_files:
-    - common_vars.yml
+#   vars_files:
+#     - common_vars.yml
 
-  roles:
-    - deploy-new-code
+#   roles:
+#     - deploy-new-code
 #=========================================================================
 ...

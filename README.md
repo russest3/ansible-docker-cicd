@@ -1,20 +1,27 @@
-1.  Add local service account
-    $ ansible-playbook add_local_service_account.yml -i localhost,
-2.  $ sudo su - <service account>
-3.  Install required collections
-    $ ansible-galaxy collection install community.docker community.general
-4.  Install required python modules
-    $ python -m pip install jmespath
-4.  Clone this repo
-    git clone https://....
-5.  Read in a password for docker hub
-    $ read -s pw
-6.  Run the create-testing-environment.yml
-    $ ansible-playbook create-testing-environment.yml -i inventory.yml -e "dockerhub_pw='${pw}'"
+Clone this repo and change to it:
+<pre>
+git clone https://github.com/russest3/ansible-docker-cicd.git
+cd ansible-docker-cicd
+</pre>
+
+Create and activate Python Virtual Environment:
+<pre>
+python -m venv .
+source bin/activate
+</pre>
+
+Install required Ansible collections:
+<pre>ansible-galaxy collection install community.docker community.general</pre>
+
+Install required python modules:
+<pre>python -m pip install jmespath requests</pre>
+
+Read in a password for docker hub:
+<pre>read -s pw</pre>
+
+Run the create-testing-environment.yml playbook:
+<pre>ansible-playbook create-testing-environment.yml -u ec2-user -i <i><b>aws-instance-ip,</b></i> -e "dockerhub_un='myusername' dockerhub_pw='${pw}'"</pre>
 
 required variables:
 dockerhub_un
 dockerhub_pw
-mysql_database
-mysql_user
-mysql_password
