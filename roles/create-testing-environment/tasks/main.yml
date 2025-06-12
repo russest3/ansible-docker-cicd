@@ -4,6 +4,31 @@
     username: "{{ dockerhub_un }}"
     password: "{{ dockerhub_pw }}"
 
+- name: 'Generate RSA authorized_keys'
+  ansible.builtin.command:
+    cmd: ssh-keygen -t rsa -b 4096 -f /home/{{ ssh_service_account_name }}/.ssh/id_rsa -q -N ''
+  args:
+    creates: /home/{{ ssh_service_account_name }}/.ssh/id_rsa
+  become: false
+
+- name: 'Set ownership of the .ssh directory'
+  ansible.builtin.file:
+    path: "/home/{{ ssh_service_account_name }}/.ssh"
+    owner: "{{ ssh_service_account_name }}"
+    group: "{{ ssh_service_account_name }}"
+    mode: '0700'
+    state: directory
+
+- name: 'Set ownership of the id_rsa and id_rsa.pub files'
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "{{ ssh_service_account_name }}"
+    group: "{{ ssh_service_account_name }}"
+    mode: '0600'
+  loop:
+    - /home/{{ ssh_service_account_name }}/.ssh/id_rsa
+    - /home/{{ ssh_service_account_name }}/.ssh/id_rsa.pub
+
 - name: 'Create a local docker testing environment using image {{ test_platform_image }}'
   community.docker.docker_container:
     name: "{{ test_platform_image_name }}"
@@ -33,16 +58,18 @@
 - name: 'Make .ssh directory and set permissions'
   community.docker.docker_container_exec:
     container: "{{ test_platform_image_name }}"
-    command: "/bin/bash -c '/usr/bin/mkdir /home/{{ ssh_service_account_name }}/.ssh; /usr/bin/chmod 700 /home/{{ ssh_service_account_name }}/.ssh; /usr/bin/chown {{ ssh_service_account_name }} /home/{{ ssh_service_account_name }}/.ssh'"
+    command: "/bin/bash -c '/usr/bin/mkdir /home/{{ ssh_service_account_name }}/.ssh; /usr/bin/chmod 700 /home/{{ ssh_service_account_name }}/.ssh; /usr/bin/chown {{ ssh_service_account_name }}: /home/{{ ssh_service_account_name }}/.ssh'"
 
 - name: 'Create .ssh authorized_keys'
   community.docker.docker_container_exec:
     container: "{{ test_platform_image_name }}"
     command: "/bin/bash -c '/usr/bin/touch /home/{{ ssh_service_account_name }}/.ssh/authorized_keys'"
 
-- name: 'Set fact for test ssh account public key'
-  ansible.builtin.set_fact:
-    test_ssh_account_public_key: "{{ lookup('file', '/home/{{ ssh_service_account_name }}/.ssh/id_rsa.pub') }}"
+- name: 'Set fact for ssh service account public key'
+  ansible.builtin.command:
+    cmd: "cat /home/{{ ssh_service_account_name }}/.ssh/id_rsa.pub"
+  register: test_ssh_account_public_key
+  become: false
 
 - name: 'Add public key to .ssh authorized_keys'
   community.docker.docker_container_exec:
@@ -54,26 +81,26 @@
     container: "{{ test_platform_image_name }}"
     command: "/bin/bash -c '/usr/bin/chown {{ ssh_service_account_name }} /home/{{ ssh_service_account_name }}/.ssh/authorized_keys; /usr/bin/chmod 400 /home/{{ ssh_service_account_name }}/.ssh/authorized_keys'"
 
-- name: 'Check to see if /root/.ssh/id_rsa exists'
-  community.docker.docker_container_exec:
-    container: "{{ test_platform_image_name }}"
-    command: "/bin/bash -c 'ls -la /root/.ssh/id_rsa'"
-  register: _key_results
-  ignore_errors: true
+# - name: 'Check to see if /root/.ssh/id_rsa exists'
+#   community.docker.docker_container_exec:
+#     container: "{{ test_platform_image_name }}"
+#     command: "/bin/bash -c 'ls -la /root/.ssh/id_rsa'"
+#   register: _key_results
+#   ignore_errors: true
 
-- name: 'Generate ssh keys for root'
-  community.docker.docker_container_exec:
-    container: "{{ test_platform_image_name }}"
-    command: /bin/bash -c "ssh-keygen -q -N '' <<< ''"
-  when: _key_results.rc > 0
+# - name: 'Generate ssh keys for root'
+#   community.docker.docker_container_exec:
+#     container: "{{ test_platform_image_name }}"
+#     command: /bin/bash -c "ssh-keygen -q -N '' <<< ''"
+#   when: _key_results.rc > 0
 
-- name: 'Copy ssh keys where they need to be for sshd'
-  community.docker.docker_container_exec:
-    container: "{{ test_platform_image_name }}"
-    command: "{{ item }}"
-  loop:
-    - /bin/bash -c "cp /root/.ssh/id_rsa /etc/ssh/ssh_host_rsa_key"
-    - /bin/bash -c "cp /root/.ssh/id_rsa.pub /etc/ssh/ssh_host_rsa_key.pub"
+# - name: 'Copy ssh keys where they need to be for sshd'
+#   community.docker.docker_container_exec:
+#     container: "{{ test_platform_image_name }}"
+#     command: "{{ item }}"
+#   loop:
+#     - /bin/bash -c "cp /root/.ssh/id_rsa /etc/ssh/ssh_host_rsa_key"
+#     - /bin/bash -c "cp /root/.ssh/id_rsa.pub /etc/ssh/ssh_host_rsa_key.pub"
 
 - name: 'Start sshd daemon'
   community.docker.docker_container_exec:
@@ -97,15 +124,15 @@
     path: "{{ test_platform_image_name }}"
     container_path: "/etc/sudoers.d/{{ test_platform_image_name }}"
 
-- name: 'Get the IP address of the new testing environment'
-  ansible.builtin.set_fact:
-    _test_ip:  "{{ _results | json_query(_query) }}"
-  vars:
-    _query: "container.NetworkSettings.IPAddress"
+# - name: 'Get the IP address of the new testing environment'
+#   ansible.builtin.set_fact:
+#     _test_ip:  "{{ _results | json_query(_query) }}"
+#   vars:
+#     _query: "container.NetworkSettings.IPAddress"
 
-- name: 'Add the IP to ansible inventory'
-  ansible.builtin.lineinfile:
-    path: inventory
-    line: "{{ _test_ip }}"
-    insertafter: EOF
+# - name: 'Add the IP to ansible inventory'
+#   ansible.builtin.lineinfile:
+#     path: inventory
+#     line: "{{ _test_ip }}"
+#     insertafter: EOF
 ...

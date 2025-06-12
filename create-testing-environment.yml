@@ -1,6 +1,6 @@
 ---
 #=========================================================================
-- name: 'Create the docker registry container'
+- name: 'Creating the docker registry container...'
   hosts: all
   become: true
   gather_facts: true
@@ -15,7 +15,7 @@
 
 
 #=========================================================================
-- name: 'Running the create-testing-environment role...'
+- name: 'Creating the testing environment...'
   hosts: all
   become: true
   gather_facts: true
@@ -49,46 +49,43 @@
 
 
 #=========================================================================
-# - name: 'Adding a nginx container to the testing environment...'
-#   hosts: all
-#   become: true
-#   gather_facts: true
+- name: 'Adding a nginx container to the testing environment...'
+  hosts: all
+  become: true
+  gather_facts: true
 
-#   vars_files:
-#     - common_vars.yml
+  vars_files:
+    - common_vars.yml
 
-#   environment:
-#     DB_HOST: "{{ hostvars['localhost']['_db_ip'] }}"
-#     DB_HOST: '172.17.0.4'
-#     DB_USERNAME: "{{ mysql_user }}"
-#     DB_PASSWORD: "{{ mysql_root_password }}"
-#     DB_NAME: "{{ mysql_database }}"
+  environment:
+    DB_HOST: "{{ _db_ip }}"
+    DB_USERNAME: "{{ mysql_user }}"
+    DB_PASSWORD: "{{ mysql_root_password }}"
+    DB_NAME: "{{ mysql_database }}"
 
-#   roles:
-#     - deploy-nginx-container
+  roles:
+    - deploy-nginx-container
 #=========================================================================
 
 
 
 #=========================================================================
-# - name: 'Deploy sample PHP application container'
-#   hosts: localhost
-#   connection: local
-#   become: true
-#   gather_facts: false
+- name: 'Deploying sample PHP application container...'
+  hosts: all
+  become: true
+  gather_facts: true
 
-#   environment:
-#     DB_HOST: "{{ hostvars['localhost']['_db_ip'] }}"
-#     DB_HOST: '172.17.0.4'
-#     DB_USERNAME: "{{ mysql_user }}"
-#     DB_PASSWORD: "{{ mysql_root_password }}"
-#     DB_NAME: "{{ mysql_database }}"
+  environment:
+    DB_HOST: "{{ _db_ip }}"
+    DB_USERNAME: "{{ mysql_user }}"
+    DB_PASSWORD: "{{ mysql_root_password }}"
+    DB_NAME: "{{ mysql_database }}"
 
-#   vars_files:
-#     - common_vars.yml
+  vars_files:
+    - common_vars.yml
 
-#   roles:
-#     - deploy-php-container
+  roles:
+    - deploy-php-container
 #=========================================================================
 
 
