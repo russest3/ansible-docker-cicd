@@ -19,9 +19,21 @@ Install required python modules:
 Read in a password for docker hub:
 <pre>read -s pw</pre>
 
-Run the create-testing-environment.yml playbook:
-<pre>ansible-playbook create-testing-environment.yml -u ec2-user -i <i><b>aws-instance-ip,</b></i> -e "dockerhub_un='myusername' dockerhub_pw='${pw}'"</pre>
+Build out the testing environment in AWS:
+<pre>
+cd modules
+terraform init
+terraform plan -out main.tfplan
+terraform apply main.tfplan
+</pre>
 
-required variables:
+Record the displayed public IP
+
+Run the create-testing-environment.yml playbook:
+<pre>ansible-playbook create-testing-environment.yml -u ec2-user -i <i><b><font color='yellow'>aws-instance-public-ip</font>,</b></i> -e "dockerhub_un='myusername' dockerhub_pw='${pw}'"</pre>
+
+Required Variables:
+
 dockerhub_un
+
 dockerhub_pw
