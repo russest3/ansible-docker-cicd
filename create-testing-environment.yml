@@ -1,5 +1,20 @@
 ---
 #=========================================================================
+- name: 'Creating the testing environment...'
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars_files:
+    - common_vars.yml
+
+  roles:
+    - create-testing-environment
+#=========================================================================
+
+
+
+#=========================================================================
 - name: 'Creating the docker registry container...'
   hosts: all
   become: true
@@ -14,22 +29,7 @@
 
 
 
-#=========================================================================
-- name: 'Creating the testing environment...'
-  hosts: all
-  become: true
-  gather_facts: true
 
-  vars_files:
-    - common_vars.yml
-
-  roles:
-    - create-testing-environment
-
-  post_tasks:
-    - name: 'Refresh Inventory'
-      ansible.builtin.meta: refresh_inventory
-#=========================================================================
 
 
 
@@ -49,74 +49,71 @@
 
 
 #=========================================================================
-- name: 'Adding a nginx container to the testing environment...'
-  hosts: all
-  become: true
-  gather_facts: true
-
-  vars_files:
-    - common_vars.yml
-
-  environment:
-    DB_HOST: "{{ _db_ip }}"
-    DB_USERNAME: "{{ mysql_user }}"
-    DB_PASSWORD: "{{ mysql_root_password }}"
-    DB_NAME: "{{ mysql_database }}"
-
-  roles:
-    - deploy-nginx-container
-#=========================================================================
-
-
-
-#=========================================================================
-- name: 'Deploying sample PHP application container...'
-  hosts: all
-  become: true
-  gather_facts: true
-
-  environment:
-    DB_HOST: "{{ _db_ip }}"
-    DB_USERNAME: "{{ mysql_user }}"
-    DB_PASSWORD: "{{ mysql_root_password }}"
-    DB_NAME: "{{ mysql_database }}"
-
-  vars_files:
-    - common_vars.yml
-
-  roles:
-    - deploy-php-container
-#=========================================================================
-
-
-
-#=========================================================================
-# - name: 'Pulling code from repository'
-#   hosts: localhost
-#   connection: local
-#   become: false
-#   gather_facts: false
-
-#   vars_files:
-#     - common_vars.yml
-
-#   roles:
-#     - pull-code
-#=========================================================================
-
-
-
-#=========================================================================
-# - name: 'Push new code to test'
-#   hosts: localhost
-#   connection: local
+# - name: 'Adding a nginx container to the testing environment...'
+#   hosts: all
 #   become: true
-#   gather_facts: false
+#   gather_facts: true
+
+#   vars_files:
+#     - common_vars.yml
+
+#   environment:
+#     DB_HOST: "{{ _db_ip }}"
+#     DB_USERNAME: "{{ mysql_user }}"
+#     DB_PASSWORD: "{{ mysql_root_password }}"
+#     DB_NAME: "{{ mysql_database }}"
+
+#   roles:
+#     - deploy-nginx-container
+#=========================================================================
+
+
+
+#=========================================================================
+# - name: 'Deploying sample PHP application container...'
+#   hosts: all
+#   become: true
+#   gather_facts: true
+
+#   environment:
+#     DB_USERNAME: "{{ mysql_user }}"
+#     DB_PASSWORD: "{{ mysql_root_password }}"
+#     DB_NAME: "{{ mysql_database }}"
 
 #   vars_files:
 #     - common_vars.yml
 
 #   roles:
-#     - deploy-new-code
+#     - deploy-php-container
+#=========================================================================
+
+
+
+#=========================================================================
+- name: 'Pulling code from repository'
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars_files:
+    - common_vars.yml
+
+  roles:
+    - pull-code
+#=========================================================================
+
+
+
+#=========================================================================
+- name: 'Push new code to test'
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars_files:
+    - common_vars.yml
+
+  roles:
+    - deploy-new-code
 #=========================================================================
 ...

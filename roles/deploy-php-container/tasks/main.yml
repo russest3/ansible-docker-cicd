@@ -1,4 +1,11 @@
 ---
+- name: 'Copy application to the target host'
+  ansible.builtin.copy:
+    src: ".docker/"
+    dest: "/home/{{ ssh_service_account_name }}/.docker/"
+    owner: "{{ ssh_service_account_name }}"
+    group: "{{ ssh_service_account_name }}"
+
 - name: 'Build and run the sample PHP application container'
   community.docker.docker_compose_v2:
     project_name: "{{ php_app_name }}"

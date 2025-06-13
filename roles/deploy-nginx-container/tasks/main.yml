@@ -26,9 +26,9 @@
   vars:
     _query: "container.NetworkSettings.IPAddress"
 
-- name: 'Add the IP to ansible inventory'
-  ansible.builtin.lineinfile:
-    path: inventory
-    line: "{{ _nginx_ip }}"
-    insertafter: EOF
+# - name: 'Add the IP to ansible inventory'
+#   ansible.builtin.lineinfile:
+#     path: inventory
+#     line: "{{ _nginx_ip }}"
+#     insertafter: EOF
 ...

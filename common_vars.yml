@@ -1,5 +1,4 @@
 ---
-# temp for testing
 dockerhub_un: 
 dockerhub_pw: ''
 mysql_server_name: 'sql-container'
@@ -8,14 +7,13 @@ mysql_database: 'gradesdb'
 mysql_user: 'admin'
 mysql_password: 'testing123'
 ssh_service_account_name: 'ec2-user'
-_test_ip: '172.17.0.3'
-_db_ip: '172.17.0.4'
-# temp for testing
+# _test_ip: '172.17.0.3'
+# _db_ip: '172.17.0.4'
 
 local_registry_image_name: 'localdockerregistry'
 local_registry_image: 'registry:2'
-test_platform_image_name: 'test-container'
-test_platform_image: 'registry.access.redhat.com/ubi8/toolbox:8.5'
+# test_platform_image_name: 'test-container'
+# test_platform_image: 'registry.access.redhat.com/ubi8/toolbox:8.5'
 test_db_image: 'container-registry.oracle.com/mysql/community-server:latest'
 test_db_port: '3306'
 nginx_image: 'nginx:latest'

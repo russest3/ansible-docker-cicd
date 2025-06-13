@@ -1,85 +1,127 @@
 ---
+- name: 'Update all packages'
+  ansible.builtin.package:
+    name: '*'
+    state: latest
+
+- name: 'Install Docker'
+  ansible.builtin.package:
+    name: docker
+    state: present
+
+- name: 'Start and enable Docker service'
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    enabled: true
+
+- name: 'Install git'
+  ansible.builtin.package:
+    name: git
+    state: present
+
+- name: 'Create docker cli-plugins directory'
+  ansible.builtin.file:
+    path: /usr/local/lib/docker/cli-plugins
+    state: directory
+    mode: '0755'
+
+- name: 'Create .docker directory'
+  ansible.builtin.file:
+    path: /home/{{ ssh_service_account_name }}/.docker
+    state: directory
+    owner: "{{ ssh_service_account_name }}"
+    group: "{{ ssh_service_account_name }}"
+    mode: '0700'
+
+- name: 'Download docker-compose plugin'
+  ansible.builtin.get_url:
+    url: "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64"
+    dest: /usr/local/lib/docker/cli-plugins/docker-compose
+    mode: '0755'
+    validate_certs: false
+
 - name: 'Login to docker hub'
   community.docker.docker_login:
     username: "{{ dockerhub_un }}"
     password: "{{ dockerhub_pw }}"
 
-- name: 'Generate RSA authorized_keys'
-  ansible.builtin.command:
-    cmd: ssh-keygen -t rsa -b 4096 -f /home/{{ ssh_service_account_name }}/.ssh/id_rsa -q -N ''
-  args:
-    creates: /home/{{ ssh_service_account_name }}/.ssh/id_rsa
-  become: false
+# - name: 'Generate RSA authorized_keys'
+#   ansible.builtin.command:
+#     cmd: ssh-keygen -t rsa -b 4096 -f /home/{{ ssh_service_account_name }}/.ssh/id_rsa -q -N ''
+#   args:
+#     creates: /home/{{ ssh_service_account_name }}/.ssh/id_rsa
+#   become: false
 
-- name: 'Set ownership of the .ssh directory'
-  ansible.builtin.file:
-    path: "/home/{{ ssh_service_account_name }}/.ssh"
-    owner: "{{ ssh_service_account_name }}"
-    group: "{{ ssh_service_account_name }}"
-    mode: '0700'
-    state: directory
+# - name: 'Set ownership of the .ssh directory'
+#   ansible.builtin.file:
+#     path: "/home/{{ ssh_service_account_name }}/.ssh"
+#     owner: "{{ ssh_service_account_name }}"
+#     group: "{{ ssh_service_account_name }}"
+#     mode: '0700'
+#     state: directory
 
-- name: 'Set ownership of the id_rsa and id_rsa.pub files'
-  ansible.builtin.file:
-    path: "{{ item }}"
-    owner: "{{ ssh_service_account_name }}"
-    group: "{{ ssh_service_account_name }}"
-    mode: '0600'
-  loop:
-    - /home/{{ ssh_service_account_name }}/.ssh/id_rsa
-    - /home/{{ ssh_service_account_name }}/.ssh/id_rsa.pub
+# - name: 'Set ownership of the id_rsa and id_rsa.pub files'
+#   ansible.builtin.file:
+#     path: "{{ item }}"
+#     owner: "{{ ssh_service_account_name }}"
+#     group: "{{ ssh_service_account_name }}"
+#     mode: '0600'
+#   loop:
+#     - /home/{{ ssh_service_account_name }}/.ssh/id_rsa
+#     - /home/{{ ssh_service_account_name }}/.ssh/id_rsa.pub
 
-- name: 'Create a local docker testing environment using image {{ test_platform_image }}'
-  community.docker.docker_container:
-    name: "{{ test_platform_image_name }}"
-    image: "{{ test_platform_image }}"
-    interactive: true
-    published_ports:
-      - '2222:22'
-    exposed_ports:
-      - '2222:22'
-    tty: true
-    privileged: true
-    init: true
-    state: started
-    recreate: true
-  register: _results
+# - name: 'Create a local docker testing environment using image {{ test_platform_image }}'
+#   community.docker.docker_container:
+#     name: "{{ test_platform_image_name }}"
+#     image: "{{ test_platform_image }}"
+#     interactive: true
+#     published_ports:
+#       - '2222:22'
+#     exposed_ports:
+#       - '2222:22'
+#     tty: true
+#     privileged: true
+#     init: true
+#     state: started
+#     recreate: true
+#   register: _results
 
-- name: 'Install openssh-server'
-  community.docker.docker_container_exec:
-    container: "{{ test_platform_image_name }}"
-    command: "/bin/bash -c 'yum install openssh-server -y'"
+# - name: 'Install openssh-server'
+#   community.docker.docker_container_exec:
+#     container: "{{ test_platform_image_name }}"
+#     command: "/bin/bash -c 'yum install openssh-server -y'"
 
-- name: 'Add ssh service account'
-  community.docker.docker_container_exec:
-    container: "{{ test_platform_image_name }}"
-    command: "/bin/bash -c '/usr/sbin/adduser {{ ssh_service_account_name }}'"
+# - name: 'Add ssh service account'
+#   community.docker.docker_container_exec:
+#     container: "{{ test_platform_image_name }}"
+#     command: "/bin/bash -c '/usr/sbin/adduser {{ ssh_service_account_name }}'"
 
-- name: 'Make .ssh directory and set permissions'
-  community.docker.docker_container_exec:
-    container: "{{ test_platform_image_name }}"
-    command: "/bin/bash -c '/usr/bin/mkdir /home/{{ ssh_service_account_name }}/.ssh; /usr/bin/chmod 700 /home/{{ ssh_service_account_name }}/.ssh; /usr/bin/chown {{ ssh_service_account_name }}: /home/{{ ssh_service_account_name }}/.ssh'"
+# - name: 'Make .ssh directory and set permissions'
+#   community.docker.docker_container_exec:
+#     container: "{{ test_platform_image_name }}"
+#     command: "/bin/bash -c '/usr/bin/mkdir /home/{{ ssh_service_account_name }}/.ssh; /usr/bin/chmod 700 /home/{{ ssh_service_account_name }}/.ssh; /usr/bin/chown {{ ssh_service_account_name }}: /home/{{ ssh_service_account_name }}/.ssh'"
 
-- name: 'Create .ssh authorized_keys'
-  community.docker.docker_container_exec:
-    container: "{{ test_platform_image_name }}"
-    command: "/bin/bash -c '/usr/bin/touch /home/{{ ssh_service_account_name }}/.ssh/authorized_keys'"
+# - name: 'Create .ssh authorized_keys'
+#   community.docker.docker_container_exec:
+#     container: "{{ test_platform_image_name }}"
+#     command: "/bin/bash -c '/usr/bin/touch /home/{{ ssh_service_account_name }}/.ssh/authorized_keys'"
 
-- name: 'Set fact for ssh service account public key'
-  ansible.builtin.command:
-    cmd: "cat /home/{{ ssh_service_account_name }}/.ssh/id_rsa.pub"
-  register: test_ssh_account_public_key
-  become: false
+# - name: 'Set fact for ssh service account public key'
+#   ansible.builtin.command:
+#     cmd: "cat /home/{{ ssh_service_account_name }}/.ssh/id_rsa.pub"
+#   register: test_ssh_account_public_key
+#   become: false
 
-- name: 'Add public key to .ssh authorized_keys'
-  community.docker.docker_container_exec:
-    container: "{{ test_platform_image_name }}"
-    command: "/bin/bash -c '/usr/bin/echo {{ test_ssh_account_public_key }} >> /home/{{ ssh_service_account_name }}/.ssh/authorized_keys'"
+# - name: 'Add public key to .ssh authorized_keys'
+#   community.docker.docker_container_exec:
+#     container: "{{ test_platform_image_name }}"
+#     command: "/bin/bash -c '/usr/bin/echo {{ test_ssh_account_public_key }} >> /home/{{ ssh_service_account_name }}/.ssh/authorized_keys'"
 
-- name: 'Setup permissions on .ssh authorized_keys'
-  community.docker.docker_container_exec:
-    container: "{{ test_platform_image_name }}"
-    command: "/bin/bash -c '/usr/bin/chown {{ ssh_service_account_name }} /home/{{ ssh_service_account_name }}/.ssh/authorized_keys; /usr/bin/chmod 400 /home/{{ ssh_service_account_name }}/.ssh/authorized_keys'"
+# - name: 'Setup permissions on .ssh authorized_keys'
+#   community.docker.docker_container_exec:
+#     container: "{{ test_platform_image_name }}"
+#     command: "/bin/bash -c '/usr/bin/chown {{ ssh_service_account_name }} /home/{{ ssh_service_account_name }}/.ssh/authorized_keys; /usr/bin/chmod 400 /home/{{ ssh_service_account_name }}/.ssh/authorized_keys'"
 
 # - name: 'Check to see if /root/.ssh/id_rsa exists'
 #   community.docker.docker_container_exec:
@@ -102,37 +144,31 @@
 #     - /bin/bash -c "cp /root/.ssh/id_rsa /etc/ssh/ssh_host_rsa_key"
 #     - /bin/bash -c "cp /root/.ssh/id_rsa.pub /etc/ssh/ssh_host_rsa_key.pub"
 
-- name: 'Start sshd daemon'
-  community.docker.docker_container_exec:
-    container: "{{ test_platform_image_name }}"
-    command: "/bin/bash -c '/usr/sbin/sshd -D &'"
+# - name: 'Start sshd daemon'
+#   community.docker.docker_container_exec:
+#     container: "{{ test_platform_image_name }}"
+#     command: "/bin/bash -c '/usr/sbin/sshd -D &'"
 
-- name: 'Create sudoers.d file'
-  community.docker.docker_container_exec:
-    container: "{{ test_platform_image_name }}"
-    command: "/bin/bash -c '/usr/bin/touch /etc/sudoers.d/{{ test_platform_image_name }}'"
+# - name: 'Create sudoers.d file'
+#   community.docker.docker_container_exec:
+#     container: "{{ test_platform_image_name }}"
+#     command: "/bin/bash -c '/usr/bin/touch /etc/sudoers.d/{{ test_platform_image_name }}'"
 
-- name: 'Write out sudoers.d file locally'
-  ansible.builtin.lineinfile:
-    path: "./{{ test_platform_image_name }}"
-    line: "{{ ssh_service_account_name }} ALL=(ALL) NOPASSWD: ALL"
-    create: true
+# - name: 'Write out sudoers.d file locally'
+#   ansible.builtin.lineinfile:
+#     path: "./{{ test_platform_image_name }}"
+#     line: "{{ ssh_service_account_name }} ALL=(ALL) NOPASSWD: ALL"
+#     create: true
 
-- name: 'Add ssh service account to sudoers.d file'
-  community.docker.docker_container_copy_into:
-    container: "{{ test_platform_image_name }}"
-    path: "{{ test_platform_image_name }}"
-    container_path: "/etc/sudoers.d/{{ test_platform_image_name }}"
+# - name: 'Add ssh service account to sudoers.d file'
+#   community.docker.docker_container_copy_into:
+#     container: "{{ test_platform_image_name }}"
+#     path: "{{ test_platform_image_name }}"
+#     container_path: "/etc/sudoers.d/{{ test_platform_image_name }}"
 
-# - name: 'Get the IP address of the new testing environment'
+# - name: 'Get the IP address of the new testing environment container'
 #   ansible.builtin.set_fact:
 #     _test_ip:  "{{ _results | json_query(_query) }}"
 #   vars:
 #     _query: "container.NetworkSettings.IPAddress"
-
-# - name: 'Add the IP to ansible inventory'
-#   ansible.builtin.lineinfile:
-#     path: inventory
-#     line: "{{ _test_ip }}"
-#     insertafter: EOF
 ...

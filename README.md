@@ -4,7 +4,7 @@ git clone https://github.com/russest3/ansible-docker-cicd.git
 cd ansible-docker-cicd
 </pre>
 
-Create and activate Python Virtual Environment:
+Create and activate a Python Virtual Environment:
 <pre>
 python -m venv .
 source bin/activate
@@ -30,7 +30,9 @@ terraform apply main.tfplan
 Record the displayed public IP
 
 Run the create-testing-environment.yml playbook:
-<pre>ansible-playbook create-testing-environment.yml -u ec2-user -i <i><b><font color='yellow'>aws-instance-public-ip</font>,</b></i> -e "dockerhub_un='myusername' dockerhub_pw='${pw}'"</pre>
+<pre>
+cd ../
+ansible-playbook create-testing-environment.yml -u ec2-user -i <i><b><font color='yellow'>aws-instance-public-ip</font>,</b></i> -e "dockerhub_un='myusername' dockerhub_pw='${pw}'"</pre>
 
 Required Variables:
 
